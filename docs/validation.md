@@ -1,4 +1,20 @@
-# Extraction validation — 2026-10-30
+# Validation — v0.1.0, 2026-10-30
+
+Validated source revision: [`e290e5f`](https://github.com/samanshaiza004/odin-accesskit/commit/e290e5f55da9cfb5e5622e4a9e5be3b691a7b82b).
+The [GitHub Actions run](https://github.com/samanshaiza004/odin-accesskit/actions/runs/41073740079)
+completed successfully on all four targets.
+
+| Target | Automated coverage | Result |
+| --- | --- | --- |
+| Windows x64 | C/Odin ABI checks, binding tests, external consumer, native Win32 smoke, and UI Automation patterns | Pass |
+| macOS arm64 | C/Odin ABI checks, binding tests, external consumer, AppKit host build and contract smoke | Pass |
+| macOS x64 | C/Odin ABI checks, binding tests, external consumer, AppKit host build and contract smoke | Pass |
+| Linux x64 | C/Odin ABI checks, binding tests, and external consumer; no native AT-SPI adapter | Pass |
+
+The macOS smoke is contract-level: it exercises the C-callable factories,
+action queue, text editing and shutdown without creating an `NSApplication` or
+window. It does **not** validate native adapter activation or VoiceOver speech.
+Linux checks the core binding only; the Unix/AT-SPI adapter is not wrapped.
 
 Local machine: Windows 10 x64, AMD Ryzen 5 7600X; Odin
 `dev-2026-09-nightly:a2fb372`, MSVC x64 toolchain, AccessKit C 0.23.1.
@@ -17,10 +33,7 @@ Local machine: Windows 10 x64, AMD Ryzen 5 7600X; Odin
   updated text, empty/limit checks and shutdown with retained provider references.
 
 The native example's automated action checks are not a fresh Narrator/NVDA
-speech validation. No new manual screen-reader session was performed during
-extraction. Previous Alicorn validation applies to Alicorn's integration.
-
-macOS arm64/x64 and Linux x64 jobs are configured in the standalone CI.
-Their execution and macOS native smoke remain pending until publication.
-Native AT-SPI is not part of the binding. Do not claim independent VoiceOver
-or Linux screen-reader acceptance from cross-compilation or core ABI checks.
+speech validation. No independent manual screen-reader session was performed
+for this binding. Previous Alicorn validation applies to Alicorn's integration,
+not to every external consumer. Do not claim independent VoiceOver or Linux
+screen-reader acceptance from adapter compilation or contract smoke tests.

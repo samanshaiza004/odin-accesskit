@@ -8,7 +8,9 @@ It owns no application model, semantic diff engine, event loop or window.
 The Odin API uses typed IDs, strings and slices with explicit ownership.
 Public `accesskit_*` declarations expose the bound C ABI directly. Named
 constants cover every role, action and byte-sized schema enum in the pinned
-header. Function/property coverage remains partial; see [api-coverage.json](api-coverage.json).
+header. The raw C declarations are intentionally partial: 57 of 497 functions
+in the pinned header are declared. That count is not a weighted feature-coverage
+measure; see [api-coverage.json](api-coverage.json) for the exact list.
 
 The `accesskit_c` collection identifies the exact native-library directory;
 this avoids ambient linker searches and supports paths containing spaces.

@@ -80,7 +80,13 @@ failure returns nonzero. Action views use the same copy/queue path as the real
 callback; smoke does not fabricate Rust-owned action requests. This is a core
 contract smoke, **not native adapter activation or VoiceOver validation**.
 
-Local verification available on the Windows development host:
+The standalone CI builds and runs `--smoke` on macOS arm64 and x86_64. This
+compiles the Objective-C host against the macOS SDK and exercises the
+platform-independent callback, action-queue, text-editing and shutdown
+contracts. The smoke mode still creates no `NSApplication` or window and does
+not activate the native adapter or validate VoiceOver.
+
+Additional cross-target verification available on the Windows development host:
 
 ```sh
 odin check examples/macos -collection:accesskit=. -target:darwin_arm64 -vet -warnings-as-errors
@@ -94,14 +100,13 @@ mailbox overflow/shutdown, and worker-thread copying without application
 mutation. The runner passed shell syntax checking and rejected the Windows
 host with status 1 before attempting AppKit compilation.
 
-The Objective-C host has **not** been compiled or run against a macOS SDK here.
-macOS linking, the foreign-pthread smoke, window interaction, native accessibility
-activation, and VoiceOver remain pending a macOS machine or approved CI run.
-For a manual check, run the window with VoiceOver enabled (Cmd-F5), inspect the
-Button and Message field with Accessibility Inspector, press the button, edit
-the text, move the selection, switch windows to test focus loss/recovery, and
-close the window. Record OS, architecture, Odin version, and reader version
-alongside results before claiming native accessibility validation.
+Interactive window behavior, native accessibility activation and VoiceOver
+remain pending physical macOS validation. For a manual check, run the window
+with VoiceOver enabled (Cmd-F5), inspect the Button and Message field with
+Accessibility Inspector, press the button, edit the text, move the selection,
+switch windows to test focus loss/recovery, and close the window. Record OS,
+architecture, Odin version and reader version alongside results before claiming
+native accessibility validation.
 
 This is a minimal editor: no IME/marked text, clipboard, undo, grapheme-cluster
 navigation, horizontal scrolling, or per-character accessibility geometry.

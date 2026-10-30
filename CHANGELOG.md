@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.0 — 2026-10-30
 
 - Extract the independent Odin binding and C ABI contracts from Alicorn.
 - Preserve AccessKit C 0.23.1; verify binary/header downloads with SHA-256.
