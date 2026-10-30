@@ -7,15 +7,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-15, macos-15-intel, ubuntu-latest]
-    timeout-minutes: 15
+        include:
+          - os: windows-latest
+            odin_release: nightly
+          - os: macos-15
+            odin_release: nightly
+          - os: macos-15-intel
+            odin_release: ''
+          - os: ubuntu-latest
+            odin_release: nightly
+    timeout-minutes: 30
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: laytan/setup-odin@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          release: nightly
+          release: ${{ matrix.odin_release }}
+      - name: Verify Odin installation
+        run: odin version
       - uses: actions/cache@v4
         with:
           path: .deps/accesskit
