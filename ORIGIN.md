@@ -9,6 +9,6 @@ Alicorn's retained semantics and SDL host adapter are not part of this repositor
 The Odin wrapper, examples and tools retain their original zlib license in
 [LICENSE](LICENSE). The original copyright notice is preserved. Upstream
 AccessKit C is a separate dependency under its own Apache-2.0/MIT notices;
-its release also includes an ISC notice for derived code. Bootstrap retrieves
+its release also includes AUTHORS and LICENSE.chromium for derived code. Bootstrap retrieves
 these notices alongside the library; distributors must preserve applicable
 upstream notices. No third-party binary is committed here.

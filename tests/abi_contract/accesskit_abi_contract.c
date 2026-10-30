@@ -8,6 +8,7 @@
 #include <stdio.h>
 
 #include "accesskit.h"
+#include "enums_generated.h"
 
 #define ABI_ASSERT(name, expression) _Static_assert((expression), #name)
 

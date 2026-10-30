@@ -1,7 +1,9 @@
 package accesskit
 
+import "core:c"
 import "core:c/libc"
 import "core:testing"
+import "core:strings"
 
 when ODIN_OS == .Windows {
 	foreign import abi_probe "system:odin_accesskit_abi_probe.lib"
@@ -9,6 +11,7 @@ when ODIN_OS == .Windows {
 	foreign import abi_probe "system:odin_accesskit_abi_probe"
 }
 foreign abi_probe {
+	accesskit_abi_action_data_make :: proc "c" (tag: c.int) -> Action_Data_ABI ---
 	accesskit_abi_rect_round_trip :: proc "c" (value: Rect) -> Rect ---
 	accesskit_abi_text_selection_round_trip :: proc "c" (value: Text_Selection) -> Text_Selection ---
 }
@@ -107,6 +110,14 @@ test_node_action_and_tree_update_transfer_ownership :: proc(t: ^testing.T) {
 	defer tree_update_destroy(&update)
 	testing.expect(t, tree_update_set_tree_info(&update, &tree), "tree info should transfer")
 	testing.expect(t, tree.raw == nil, "transferred tree info handle should be cleared")
+	debug_text := accesskit_tree_update_debug(update.raw)
+	testing.expect(t, debug_text != nil, "transferred tree metadata should remain readable in the update")
+	if debug_text != nil {
+		testing.expect(t, strings.contains(string(debug_text), "Odin fixture"),
+			"the update should retain tree metadata after the source handle is cleared")
+		accesskit_string_free(debug_text)
+	}
+
 	testing.expect(t, tree_update_push_node(&update, Node_ID(1), &root), "root should transfer")
 	testing.expect(t, root.raw == nil, "transferred root handle should be cleared")
 	testing.expect(t, tree_update_push_node(&update, Node_ID(2), &button), "button should transfer")
@@ -201,4 +212,34 @@ test_action_request_borrow_and_copy_preserves_text_after_source_changes :: proc(
 	defer owned_action_request_destroy(&owned)
 	text_bytes[0] = 'X'
 	testing.expect(t, owned.text_value == "set value", "owned snapshot must not alias the C payload")
+}
+
+@(test)
+test_all_action_payloads_constructed_by_c_are_preserved :: proc(t: ^testing.T) {
+    for tag in c.int(0)..<8 {
+        payload := accesskit_abi_action_data_make(tag)
+        abi := Action_Request_ABI{action=u8(ACTION_SET_VALUE), target_node=42,
+            data=Optional_Action_Data_ABI{has_value=true, value=payload}}
+        // Borrow the stack fixture; it is not a C-owned request to destroy.
+        request := Action_Request{raw=&abi}
+        view, valid := action_request_borrow(&request)
+        testing.expect(t, valid && view.has_data && c.int(view.data_tag) == tag)
+        owned, copied := action_request_copy(view, context.allocator)
+        testing.expect(t, copied)
+        switch Action_Data_Tag(tag) {
+        case ACTION_DATA_CUSTOM_ACTION:
+            testing.expect(t, owned.custom_action == -7)
+        case ACTION_DATA_VALUE:
+            testing.expect(t, owned.text_value == "copied text" && owned.payload.value[0] == 0)
+        case ACTION_DATA_NUMERIC_VALUE:
+            testing.expect(t, owned.numeric_value == -6.25, "numeric union payload must be reinterpreted as f64 bits")
+        case ACTION_DATA_SCROLL_UNIT, ACTION_DATA_SCROLL_HINT:
+            testing.expect(t, owned.payload.value[0] == 1)
+        case ACTION_DATA_SCROLL_TO_POINT, ACTION_DATA_SET_SCROLL_OFFSET:
+            testing.expect(t, transmute(f64)owned.payload.value[0] == 12.5 && transmute(f64)owned.payload.value[1] == -3.25)
+        case ACTION_DATA_SET_TEXT_SELECTION:
+            testing.expect(t, owned.payload.value == [4]u64{7,2,9,4})
+        }
+        owned_action_request_destroy(&owned)
+    }
 }

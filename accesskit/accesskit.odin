@@ -4,8 +4,8 @@ import "core:c"
 import "core:mem"
 import "core:strings"
 
-// This package is a small Odin binding over the common AccessKit C API.
-// It deliberately contains no Alicorn semantic model or native-window code.
+// Odin bindings for AccessKit C. Native windows and application state belong
+// to the caller. Owning wrappers must not be copied.
 
 when ODIN_OS == .Windows {
 	foreign import accesskit "system:accesskit.lib"
@@ -54,6 +54,7 @@ foreign accesskit {
 	accesskit_tree_info_set_toolkit_name_with_length :: proc "c" (tree, value: rawptr, length: uint) ---
 	accesskit_tree_info_set_toolkit_version_with_length :: proc "c" (tree, value: rawptr, length: uint) ---
 	accesskit_tree_update_with_capacity_and_focus :: proc "c" (capacity: uint, focus: u64) -> rawptr ---
+	accesskit_tree_update_debug :: proc "c" (update: rawptr) -> cstring ---
 	accesskit_tree_update_free :: proc "c" (update: rawptr) ---
 	accesskit_tree_update_push_node :: proc "c" (update: rawptr, id: u64, node: rawptr) ---
 	accesskit_tree_update_set_tree_info :: proc "c" (update, tree: rawptr) ---
@@ -123,8 +124,8 @@ Activation_Handler :: proc "c" (userdata: rawptr) -> rawptr
 empty_string_byte: u8 = 0
 
 // Role is the AccessKit 0.23.1 role byte. The named constants below cover
-// common controls; converting another pinned-header value to Role keeps the
-// wrapper forward-compatible without introducing a second role taxonomy.
+// the incubation controls; constants_generated.odin covers the remaining
+// values directly from the pinned C header.
 Role :: distinct u8
 
 ROLE_UNKNOWN :: Role(0)
@@ -310,7 +311,7 @@ Optional_Action_Data_ABI :: struct {
 	value: Action_Data_ABI,
 }
 
-// Text_Position and Text_Selection use UTF-8 character indices per AccessKit.
+// Positions use AccessKit selectable-unit indices, not UTF-8 byte offsets.
 Text_Position :: struct {
 	node: u64,
 	character_index: uint,
@@ -410,7 +411,7 @@ action_request_borrow :: proc(request: ^Action_Request) -> (view: Borrowed_Actio
 	case ACTION_DATA_VALUE:
 		view.text_value = cast(cstring)rawptr(uintptr(c_request.data.value.value[0]))
 	case ACTION_DATA_NUMERIC_VALUE:
-		view.numeric_value = cast(f64)c_request.data.value.value[0]
+		view.numeric_value = transmute(f64)c_request.data.value.value[0]
 	case:
 		// Other pinned tags remain observable via data_tag. Their payloads are
 		// intentionally not reinterpreted by this small common wrapper.
