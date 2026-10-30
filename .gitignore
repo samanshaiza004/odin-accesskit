@@ -1,0 +1,9 @@
+.deps/
+out/
+*.exe
+*.obj
+*.pdb
+*.lib
+*.dll
+*.log
+__pycache__/
