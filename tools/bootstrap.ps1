@@ -142,9 +142,11 @@ function Get-AccessKitDependency {
     }
 
     $libraryDirectory = Join-Path $distribution 'lib\windows\x86_64\msvc\static'
-    $quotedLibraryDirectory = if ($libraryDirectory -match '\s') { "`"$libraryDirectory`"" } else { $libraryDirectory }
-    $linkerFlags = "/LIBPATH:$quotedLibraryDirectory bcrypt.lib ntdll.lib propsys.lib runtimeobject.lib uiautomationcore.lib userenv.lib ws2_32.lib"
-    return [pscustomobject]@{ Root = $distribution; Archive = $archive; Library = $library; LinkerFlags = $linkerFlags }
+    $linkerFlags = 'bcrypt.lib ntdll.lib propsys.lib runtimeobject.lib uiautomationcore.lib userenv.lib ws2_32.lib'
+    return [pscustomobject]@{
+        Root=$distribution; Archive=$archive; Library=$library; LibraryDirectory=$libraryDirectory; LinkerFlags=$linkerFlags
+        CompilerArguments=@("-collection:accesskit_c=$libraryDirectory", "-extra-linker-flags:$linkerFlags")
+    }
 }
 
 if ($MyInvocation.InvocationName -ne '.') { Get-AccessKitDependency -CacheRoot $CacheRoot }

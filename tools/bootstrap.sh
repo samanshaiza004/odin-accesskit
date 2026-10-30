@@ -2,8 +2,14 @@
 set -eu
 SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd -P)
 REPO_ROOT=$(CDPATH='' cd -- "$SCRIPT_DIR/.." && pwd -P)
-if [ "${1-}" = '--cache-root' ]; then ACCESSKIT_CACHE_ROOT=$2; shift 2; fi
-[ "$#" -eq 0 ] || { echo 'Usage: bootstrap.sh [--cache-root DIRECTORY]' >&2; exit 2; }
+MODE=linker
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --cache-root) ACCESSKIT_CACHE_ROOT=$2; shift 2 ;;
+        --library-directory) MODE=directory; shift ;;
+        *) echo 'Usage: bootstrap.sh [--cache-root DIRECTORY] [--library-directory]' >&2; exit 2 ;;
+    esac
+done
 
 # Download and verify the pinned upstream binary distribution.
 accesskit_linker_flags() {
@@ -18,7 +24,6 @@ accesskit_linker_flags() {
 			platform=linux
 			case "$(uname -m)" in
 				x86_64|amd64) arch=x86_64 ;;
-				i386|i486|i586|i686) arch=x86 ;;
 				*) echo "AccessKit $version Linux static library does not support architecture '$(uname -m)'." >&2; return 1 ;;
 			esac
 			;;
@@ -77,11 +82,13 @@ accesskit_linker_flags() {
 		rm -r "$stage"
 	fi
 	library_directory="$distribution/lib/$platform/$arch/static"
-	if [ "$platform" = linux ]; then
-		printf '%s\n' "-L$library_directory -laccesskit"
-	else
-		printf '%s\n' "-L$library_directory -framework AppKit -framework Foundation -framework CoreFoundation -lobjc -lc++"
-	fi
+    if [ "$MODE" = directory ]; then
+        printf '%s\n' "$library_directory"
+    elif [ "$platform" = linux ]; then
+        printf '%s\n' '-ldl -lpthread -lm'
+    else
+        printf '%s\n' '-framework AppKit -framework Foundation -framework CoreFoundation -lobjc -lc++'
+    fi
 }
 
 accesskit_linker_flags

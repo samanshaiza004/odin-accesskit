@@ -8,9 +8,9 @@ import "core:strings"
 // to the caller. Owning wrappers must not be copied.
 
 when ODIN_OS == .Windows {
-	foreign import accesskit "system:accesskit.lib"
+	foreign import accesskit "accesskit_c:accesskit.lib"
 } else {
-	foreign import accesskit "system:accesskit"
+	foreign import accesskit "accesskit_c:libaccesskit.a"
 }
 
 foreign accesskit {

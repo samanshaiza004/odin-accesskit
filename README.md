@@ -10,6 +10,9 @@ Public `accesskit_*` declarations expose the bound C ABI directly. Named
 constants cover every role, action and byte-sized schema enum in the pinned
 header. Function/property coverage remains partial; see [api-coverage.json](api-coverage.json).
 
+The `accesskit_c` collection identifies the exact native-library directory;
+this avoids ambient linker searches and supports paths containing spaces.
+
 Binding v0.1.0 targets **AccessKit C 0.23.1**. The upstream library and header
 are downloaded together and verified with SHA-256. Rust is not required to
 consume the prebuilt static libraries. Odin's API remains experimental.
@@ -19,7 +22,7 @@ consume the prebuilt static libraries. Odin's API remains experimental.
 Use an Odin installation on PATH. Windows additionally needs MSVC C++ build
 tools and a Windows SDK; scripts initialize its x64 environment. macOS needs
 Xcode command line tools, curl and unzip. Linux core checks need a C compiler,
-ar, curl and unzip. CI also uses Python 3 to check generated enum coverage.
+ar, curl and unzip. The check scripts also require Python 3 to verify generated enum coverage.
 
 ```powershell
 # Windows x64: bootstrap, C/Odin ABI round trips, ownership tests,
@@ -56,19 +59,22 @@ link recipe (paths may be absolute):
 ```powershell
 $binding = (Resolve-Path .).Path
 $native = & "$binding\tools\bootstrap.ps1"
-odin build C:\path\to\app "-collection:accesskit=$binding" "-extra-linker-flags:$($native.LinkerFlags)"
+odin build C:\path\to\app "-collection:accesskit=$binding" @($native.CompilerArguments)
 ```
 
 ```sh
 binding=/path/to/odin-accesskit
 flags=$(sh "$binding/tools/bootstrap.sh")
-odin build /path/to/app "-collection:accesskit=$binding" "-extra-linker-flags:$flags"
+libdir=$(sh "$binding/tools/bootstrap.sh" --library-directory)
+odin build /path/to/app "-collection:accesskit=$binding" "-collection:accesskit_c=$libdir" "-extra-linker-flags:$flags"
 ```
 
 `tools/check` builds the [minimal tree](examples/minimal_tree/main.odin) from
 a temporary directory outside the repository. Native examples demonstrate
 activation, update submission, action callbacks, focus and destruction without
 Alicorn or SDL. Automated smoke is not a screen-reader compatibility claim.
+See the [extraction validation record](docs/validation.md) for completed and
+pending checks.
 
 ## Contracts
 

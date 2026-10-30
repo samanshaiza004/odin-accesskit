@@ -1,0 +1,29 @@
+name: Binding and C ABI
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-15, macos-15-intel, ubuntu-latest]
+    timeout-minutes: 15
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: laytan/setup-odin@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release: nightly
+      - uses: actions/cache@v4
+        with:
+          path: .deps/accesskit
+          key: accesskit-c-0.23.1-${{ runner.os }}-${{ runner.arch }}
+      - name: Windows binding, ABI and native smoke
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tools/check.ps1
+      - name: Unix binding, ABI and external consumer
+        if: runner.os != 'Windows'
+        run: sh tools/check.sh
