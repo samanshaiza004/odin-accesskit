@@ -2,9 +2,13 @@
 Run after bootstrap. --check compares generated output without modifying files.
 """
 from pathlib import Path
-import hashlib, json, re, sys
+import argparse, hashlib, json, re
 root=Path(__file__).resolve().parent.parent
-header=root/'.deps/accesskit/accesskit-c-0.23.1/include/accesskit.h'
+parser=argparse.ArgumentParser()
+parser.add_argument('--check', action='store_true')
+parser.add_argument('--cache-root', type=Path, default=root/'.deps/accesskit')
+args=parser.parse_args()
+header=args.cache_root.expanduser().resolve()/'accesskit-c-0.23.1/include/accesskit.h'
 source=header.read_text()
 clean=re.sub(r'/\*.*?\*/|//[^\n]*', '', source, flags=re.S)
 binding=(root/'accesskit/accesskit.odin').read_text()
@@ -34,7 +38,7 @@ bound=set(re.findall(r'\b(accesskit_\w+)\s*::\s*proc "c"',binding))
 manifest={'accesskit_c':'0.23.1','header_sha256':hashlib.sha256(header.read_bytes()).hexdigest(),'enums':counts,'raw_c_functions_bound':sorted(bound),'raw_c_functions_not_bound':sorted(upstream-bound)}
 outputs={root/'accesskit/constants_generated.odin':'\n'.join(odin).rstrip()+'\n',root/'tests/abi_contract/enums_generated.h':'\n'.join(asserts)+'\n',root/'api-coverage.json':json.dumps(manifest,indent=2)+'\n'}
 for path,text in outputs.items():
- if '--check' in sys.argv:
+ if args.check:
   if not path.exists() or path.read_text()!=text:raise SystemExit(f'Stale generated file: {path}')
  else:path.write_text(text)
 print(f'{sum(counts.values())} enum values checked; {len(bound)} of {len(upstream)} C functions declared')

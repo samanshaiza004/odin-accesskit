@@ -18,7 +18,7 @@ export ACCESSKIT_CACHE_ROOT ODIN
 cd "$ROOT"
 FLAGS=$(sh tools/bootstrap.sh --cache-root "$CACHE_ROOT")
 LIBDIR=$(sh tools/bootstrap.sh --cache-root "$CACHE_ROOT" --library-directory)
-python3 tools/generate_constants.py --check
+python3 tools/generate_constants.py --check --cache-root "$CACHE_ROOT"
 mkdir -p out
 HEADER="$CACHE_ROOT/accesskit-c-0.23.1/include"
 "$CC" -std=c11 -Wall -Wextra -Werror -Wpedantic -I "$HEADER" tests/abi_contract/accesskit_abi_contract.c -o out/contract

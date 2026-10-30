@@ -19,7 +19,9 @@ try {
     if ($LASTEXITCODE) { throw 'C aggregate probe compile failed' }
     & lib /nologo "/OUT:$Out\odin_accesskit_abi_probe.lib" "$Out\round_trip.obj"
     if ($LASTEXITCODE) { throw 'C aggregate probe archive failed' }
-    & python tools/generate_constants.py --check
+    $GeneratorArguments = @('--check')
+    if ($CacheRoot) { $GeneratorArguments += @('--cache-root', $CacheRoot) }
+    & python tools/generate_constants.py @GeneratorArguments
     if ($LASTEXITCODE) { throw 'Generated enum coverage check failed' }
     $Arguments = @($Dependency.CompilerArguments)
     & $Odin check accesskit -no-entry-point "-collection:accesskit_c=$($Dependency.LibraryDirectory)"
