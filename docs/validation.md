@@ -1,7 +1,7 @@
 # Validation — v0.1.0, 2026-10-30
 
-Validated source revision: [`e290e5f`](https://github.com/samanshaiza004/odin-accesskit/commit/e290e5f55da9cfb5e5622e4a9e5be3b691a7b82b).
-The [GitHub Actions run](https://github.com/samanshaiza004/odin-accesskit/actions/runs/41073740079)
+Validated release revision: [`9077671`](https://github.com/samanshaiza004/odin-accesskit/commit/907767158628a8f1959835152699a0cf6aad3566).
+The [release-tag GitHub Actions run](https://github.com/samanshaiza004/odin-accesskit/actions/runs/41091327316)
 completed successfully on all four targets.
 
 | Target | Automated coverage | Result |
